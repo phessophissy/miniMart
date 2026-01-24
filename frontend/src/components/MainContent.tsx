@@ -208,16 +208,16 @@ function Content() {
               <span className="text-xl font-bold gold-gradient">MintMart</span>
             </div>
             <p className="text-gray-500 text-sm">
-              © 2024 MintMart. Built on Stacks.
+              © 2026 MintMart. Built on Stacks.
             </p>
             <div className="flex gap-6">
-              <a href="#" className="text-gray-400 hover:text-yellow-400 transition-colors">
+              <a href="https://twitter.com/mintmart" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-yellow-400 transition-colors">
                 Twitter
               </a>
-              <a href="#" className="text-gray-400 hover:text-yellow-400 transition-colors">
+              <a href="https://discord.gg/mintmart" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-yellow-400 transition-colors">
                 Discord
               </a>
-              <a href="#" className="text-gray-400 hover:text-yellow-400 transition-colors">
+              <a href="https://github.com/phessophissy/miniMart" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-yellow-400 transition-colors">
                 GitHub
               </a>
             </div>
