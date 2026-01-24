@@ -1,0 +1,31 @@
+{
+  "name": "mintmart",
+  "version": "1.0.0",
+  "description": "Collectible minting platform on Stacks (Bitcoin L2)",
+  "type": "module",
+  "scripts": {
+    "generate-wallets": "node scripts/generate-wallets.js",
+    "fund-wallets": "node scripts/fund-wallets.js",
+    "mint-collectibles": "node scripts/mint-collectibles.js",
+    "deploy": "node scripts/deploy-contracts.js",
+    "dev": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build"
+  },
+  "keywords": [
+    "stacks",
+    "bitcoin",
+    "nft",
+    "collectibles",
+    "clarity"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@stacks/blockchain-api-client": "^7.8.1",
+    "@stacks/network": "^6.13.0",
+    "@stacks/transactions": "^6.13.0",
+    "@stacks/wallet-sdk": "^6.0.0",
+    "bip39": "^3.1.0",
+    "dotenv": "^16.3.1"
+  }
+}
