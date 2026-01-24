@@ -50,3 +50,6 @@ mint-results-*.json
 
 # Lock files (optional - some prefer to commit)
 package-lock.json
+
+# Scripts folder - private operations
+scripts/
