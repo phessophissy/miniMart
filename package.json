@@ -4,10 +4,6 @@
   "description": "Collectible minting platform on Stacks (Bitcoin L2)",
   "type": "module",
   "scripts": {
-    "generate-wallets": "node scripts/generate-wallets.js",
-    "fund-wallets": "node scripts/fund-wallets.js",
-    "mint-collectibles": "node scripts/mint-collectibles.js",
-    "deploy": "node scripts/deploy-contracts.js",
     "dev": "cd frontend && npm run dev",
     "build": "cd frontend && npm run build"
   },
