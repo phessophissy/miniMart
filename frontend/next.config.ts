@@ -1,8 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Transpile @stacks packages for proper SSR support
-  transpilePackages: [
+  // Mark @stacks packages as external to prevent bundling/SSR issues
+  serverExternalPackages: [
     '@stacks/connect',
     '@stacks/network',
     '@stacks/transactions',
@@ -12,8 +12,9 @@ const nextConfig: NextConfig = {
     '@stacks/storage',
     '@stacks/common',
   ],
-  // Empty turbopack config to silence warnings
-  turbopack: {},
+  turbopack: {
+    resolveExtensions: ['.tsx', '.ts', '.jsx', '.js', '.mjs', '.json'],
+  },
 };
 
 export default nextConfig;
