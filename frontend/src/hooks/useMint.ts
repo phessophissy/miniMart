@@ -1,13 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import {
-  makeContractCall,
-  PostConditionMode,
-  FungibleConditionCode,
-  makeStandardSTXPostCondition,
-  AnchorMode,
-} from '@stacks/transactions';
+import { Pc, PostConditionMode, AnchorMode } from '@stacks/transactions';
 import { openContractCall } from '@stacks/connect';
 import { useWallet, network } from '@/contexts/WalletContext';
 
@@ -71,13 +65,9 @@ export function useMint() {
       setMintingTier(tier);
 
       try {
-        // Post condition: user sends exact mint price
+        // Post condition: user sends exact mint price (v7 API)
         const postConditions = [
-          makeStandardSTXPostCondition(
-            address,
-            FungibleConditionCode.Equal,
-            BigInt(contract.mintPrice)
-          ),
+          Pc.principal(address).willSendEq(contract.mintPrice).ustx(),
         ];
 
         await openContractCall({

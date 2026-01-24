@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { callReadOnlyFunction, cvToJSON, ClarityType } from '@stacks/transactions';
+import { fetchCallReadOnlyFunction, cvToJSON, ClarityType } from '@stacks/transactions';
 import { network } from '@/contexts/WalletContext';
 
 const API_URL = 'https://stacks-node-api.mainnet.stacks.co';
@@ -39,7 +39,7 @@ export function useContractRead(tier: string) {
       setLoading(true);
 
       // Fetch last token ID
-      const lastTokenIdResponse = await callReadOnlyFunction({
+      const lastTokenIdResponse = await fetchCallReadOnlyFunction({
         contractAddress: DEPLOYER,
         contractName,
         functionName: 'get-last-token-id',
@@ -49,7 +49,7 @@ export function useContractRead(tier: string) {
       });
 
       // Fetch max supply
-      const maxSupplyResponse = await callReadOnlyFunction({
+      const maxSupplyResponse = await fetchCallReadOnlyFunction({
         contractAddress: DEPLOYER,
         contractName,
         functionName: 'get-max-supply',
@@ -59,7 +59,7 @@ export function useContractRead(tier: string) {
       });
 
       // Fetch mint price
-      const mintPriceResponse = await callReadOnlyFunction({
+      const mintPriceResponse = await fetchCallReadOnlyFunction({
         contractAddress: DEPLOYER,
         contractName,
         functionName: 'get-mint-price',
