@@ -43,3 +43,10 @@ coverage/
 # Misc
 *.log
 .vercel
+
+# Deployment and minting results (may contain tx data)
+deployment-results.json
+mint-results-*.json
+
+# Lock files (optional - some prefer to commit)
+package-lock.json

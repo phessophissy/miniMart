@@ -1,191 +1,123 @@
 /**
  * MintMart Minting Script
- * Mints collectibles from 500 wallets across 5 rarity tiers
- * 
- * Each wallet mints 1 NFT from its assigned tier contract
  */
 import {
   makeContractCall,
   broadcastTransaction,
   AnchorMode,
-  PostConditionMode,
-  FungibleConditionCode,
-  makeStandardSTXPostCondition
+  PostConditionMode
 } from '@stacks/transactions';
 import { StacksMainnet } from '@stacks/network';
+import fetch from 'node-fetch';
 import fs from 'fs';
 import dotenv from 'dotenv';
-import { CONTRACTS, WALLET_FILES, TX_DELAY, DEPLOYER_ADDRESS, API_URL } from './config.js';
+import { DEPLOYER_ADDRESS, WALLET_FILES, CONTRACTS } from './config.js';
 
 dotenv.config();
 
+const API_URL = 'https://api.hiro.so';
 const network = new StacksMainnet({ url: API_URL });
 
-/**
- * Delay helper
- */
-function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
+const TIER = process.env.TIER || 'common';
+const START_FROM = parseInt(process.env.START_FROM || '0');
+const LIMIT = parseInt(process.env.LIMIT || '100');
 
-/**
- * Get nonce for a wallet
- */
-async function getWalletNonce(address) {
-  const response = await fetch(`${API_URL}/extended/v1/address/${address}/nonces`);
-  const data = await response.json();
-  return data.possible_next_nonce;
-}
+const delay = ms => new Promise(r => setTimeout(r, ms));
 
-/**
- * Mint a collectible from a wallet
- */
-async function mintCollectible(wallet, tier, contractInfo) {
-  const [contractAddress, contractName] = contractInfo.address.split('.');
-  
-  // Post condition: wallet sends mint price to contract owner
-  const postConditions = [
-    makeStandardSTXPostCondition(
-      wallet.address,
-      FungibleConditionCode.Equal,
-      BigInt(contractInfo.mintPrice)
-    )
-  ];
-
-  const txOptions = {
-    contractAddress,
-    contractName,
-    functionName: 'mint',
-    functionArgs: [],
-    senderKey: wallet.privateKey,
-    network,
-    postConditions,
-    postConditionMode: PostConditionMode.Deny,
-    anchorMode: AnchorMode.Any,
-    fee: BigInt(10000)
-  };
-
-  const transaction = await makeContractCall(txOptions);
-  const broadcastResponse = await broadcastTransaction(transaction, network);
-  
-  return {
-    wallet: wallet.address,
-    tier,
-    contract: contractInfo.address,
-    txid: broadcastResponse.txid,
-    error: broadcastResponse.error
-  };
-}
-
-/**
- * Mint collectibles for a tier
- */
-async function mintTier(tier) {
-  const walletFile = WALLET_FILES[tier];
-  const contractInfo = CONTRACTS[tier];
-  
-  if (!fs.existsSync(walletFile)) {
-    console.error(`❌ Wallet file not found: ${walletFile}`);
-    console.error('   Run: npm run generate-wallets first');
-    return { minted: 0, failed: 0 };
-  }
-
-  const data = JSON.parse(fs.readFileSync(walletFile, 'utf8'));
-  const wallets = data.wallets;
-  
-  console.log(`\n🎨 Minting ${tier.toUpperCase()} collectibles...`);
-  console.log(`   Contract: ${contractInfo.address}`);
-  console.log(`   Mint price: ${(contractInfo.mintPrice / 1000000).toFixed(4)} STX`);
-  console.log(`   Wallets: ${wallets.length}`);
-  
-  const results = [];
-  
-  for (let i = 0; i < wallets.length; i++) {
-    const wallet = wallets[i];
-    
+async function fetchAPI(url) {
+  for (let i = 0; i < 10; i++) {
     try {
-      const result = await mintCollectible(wallet, tier, contractInfo);
-      results.push(result);
-      
-      if (result.error) {
-        console.log(`   ❌ Failed: ${wallet.address.slice(0, 12)}... - ${result.error}`);
-      } else {
-        console.log(`   ✅ Minted: ${wallet.address.slice(0, 12)}... | TX: ${result.txid.slice(0, 12)}...`);
+      const res = await fetch(url);
+      const text = await res.text();
+      if (text.includes('Per-minute')) {
+        console.log('  ⏳ Rate limited, waiting 60s...');
+        await delay(60000);
+        continue;
       }
-      
-      await delay(TX_DELAY);
-    } catch (error) {
-      console.log(`   ❌ Error: ${wallet.address.slice(0, 12)}... - ${error.message}`);
-      results.push({
-        wallet: wallet.address,
-        tier,
-        error: error.message
-      });
+      return JSON.parse(text);
+    } catch (e) {
+      console.log(`  ⚠️ Retry ${i+1}/10: ${e.message}`);
+      await delay(5000);
     }
   }
-  
-  const minted = results.filter(r => !r.error).length;
-  const failed = results.filter(r => r.error).length;
-  
-  // Save minting results
-  const resultsFile = `./wallets/${tier}-minting-results.json`;
-  fs.writeFileSync(resultsFile, JSON.stringify({
-    tier,
-    contract: contractInfo.address,
-    timestamp: new Date().toISOString(),
-    minted,
-    failed,
-    results
-  }, null, 2));
-  
-  console.log(`   📊 ${tier}: ${minted} minted, ${failed} failed`);
-  
-  return { minted, failed };
+  return null;
 }
 
-/**
- * Main minting function
- */
 async function main() {
   console.log('═══════════════════════════════════════════════════════════');
-  console.log('           MintMart Collectible Minter v1.0');
+  console.log('           MintMart NFT Minter v1.0');
   console.log('═══════════════════════════════════════════════════════════');
-  console.log(`\n🎨 Minting collectibles from 500 wallets...`);
-  console.log(`📍 Deployer (receives payments): ${DEPLOYER_ADDRESS}`);
+  console.log(`\n🎯 Tier: ${TIER.toUpperCase()}`);
+  console.log(`📜 Contract: ${DEPLOYER_ADDRESS}.${CONTRACTS[TIER].name}`);
   
-  const tiers = ['common', 'rare', 'epic', 'legendary', 'ultimate'];
+  const tierFile = WALLET_FILES[TIER];
+  const tierData = JSON.parse(fs.readFileSync(tierFile, 'utf8'));
+  const wallets = tierData.wallets.slice(START_FROM, START_FROM + LIMIT);
   
-  let totalMinted = 0;
-  let totalFailed = 0;
+  console.log(`📊 Wallets: ${wallets.length} (from ${START_FROM})\n`);
   
-  for (const tier of tiers) {
-    const result = await mintTier(tier);
-    totalMinted += result.minted;
-    totalFailed += result.failed;
+  let minted = 0, failed = 0;
+
+  for (let i = 0; i < wallets.length; i++) {
+    const wallet = wallets[i];
+    const idx = START_FROM + i;
+    
+    try {
+      // Get nonce
+      const nonceData = await fetchAPI(`${API_URL}/extended/v1/address/${wallet.address}/nonces`);
+      if (!nonceData) { console.log(`  ❌ [${idx+1}] Could not get nonce`); failed++; continue; }
+      
+      const tx = await makeContractCall({
+        contractAddress: DEPLOYER_ADDRESS,
+        contractName: CONTRACTS[TIER].name,
+        functionName: 'mint',
+        functionArgs: [],
+        senderKey: wallet.privateKey,
+        network,
+        nonce: BigInt(nonceData.possible_next_nonce),
+        anchorMode: AnchorMode.Any,
+        postConditionMode: PostConditionMode.Allow,
+        fee: BigInt(5000)
+      });
+
+      const result = await broadcastTransaction(tx, network);
+
+      if (result.error) {
+        const err = typeof result.error === 'string' ? result.error : JSON.stringify(result.error);
+        if (err.includes('Per-minute') || err.includes('rate')) {
+          console.log(`  ⏳ Rate limited at [${idx+1}], waiting 60s...`);
+          await delay(60000);
+          i--; continue;
+        }
+        failed++;
+        console.log(`  ❌ [${idx+1}/100] ${err.slice(0, 50)}`);
+      } else {
+        minted++;
+        console.log(`  ✅ [${idx+1}/100] Minted: ${wallet.address.slice(0,12)}...`);
+      }
+      await delay(2500);
+    } catch (e) {
+      if (e.message?.includes('rate') || e.message?.includes('EAI_AGAIN')) {
+        console.log(`  ⏳ Network error, waiting 60s...`);
+        await delay(60000);
+        i--; continue;
+      }
+      failed++;
+      console.log(`  ❌ [${idx+1}/100] ${e.message?.slice(0,50)}`);
+    }
   }
-  
-  // Summary
-  console.log('\n═══════════════════════════════════════════════════════════');
-  console.log('                    MINTING COMPLETE');
-  console.log('═══════════════════════════════════════════════════════════');
-  console.log(`   ✅ Minted: ${totalMinted} collectibles`);
-  console.log(`   ❌ Failed: ${totalFailed} mints`);
-  console.log('═══════════════════════════════════════════════════════════\n');
-  
-  // Calculate revenue
-  let totalRevenue = 0;
-  for (const tier of tiers) {
-    const successfulMints = JSON.parse(
-      fs.readFileSync(`./wallets/${tier}-minting-results.json`, 'utf8')
-    ).minted;
-    totalRevenue += successfulMints * CONTRACTS[tier].mintPrice;
-  }
-  
-  console.log(`💰 Total revenue collected: ${(totalRevenue / 1000000).toFixed(4)} STX`);
-  
-  if (totalFailed > 0) {
-    console.log('\n⚠️  Some mints failed. Check *-minting-results.json files.');
-  }
+
+  fs.writeFileSync(`./mint-results-${TIER}.json`, JSON.stringify({
+    tier: TIER,
+    contract: CONTRACTS[TIER].name,
+    timestamp: new Date().toISOString(),
+    startedFrom: START_FROM,
+    minted, failed
+  }, null, 2));
+
+  console.log(`\n═══════════════════════════════════════════════════════════`);
+  console.log(`   ✅ Minted: ${minted} | ❌ Failed: ${failed}`);
+  console.log(`═══════════════════════════════════════════════════════════\n`);
 }
 
-main().catch(console.error);
+main().catch(e => console.error('Fatal:', e.message));

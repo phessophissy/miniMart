@@ -1,8 +1,6 @@
 /**
  * MintMart Contract Deployment Script
  * Deploys all 5 NFT contracts to Stacks mainnet
- * 
- * Deployer: SP2KYZRNME33Y39GP3RKC90DQJ45EF1N0NZNVRE09
  */
 import {
   makeContractDeploy,
@@ -10,42 +8,54 @@ import {
   AnchorMode
 } from '@stacks/transactions';
 import { StacksMainnet } from '@stacks/network';
+import { generateWallet } from '@stacks/wallet-sdk';
+import fetch from 'node-fetch';
+import https from 'https';
 import fs from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
-import { CONTRACTS, DEPLOYER_ADDRESS, API_URL } from './config.js';
+import { DEPLOYER_ADDRESS } from './config.js';
 
 dotenv.config();
 
+// Use Hiro API directly
+const API_URL = 'https://api.hiro.so';
 const network = new StacksMainnet({ url: API_URL });
 
-const DEPLOYER_PRIVATE_KEY = process.env.DEPLOYER_PRIVATE_KEY;
+const DEPLOYER_MNEMONIC = process.env.DEPLOYER_MNEMONIC;
 
-if (!DEPLOYER_PRIVATE_KEY) {
-  console.error('❌ DEPLOYER_PRIVATE_KEY not found in .env file');
+if (!DEPLOYER_MNEMONIC) {
+  console.error('❌ DEPLOYER_MNEMONIC not found in .env file');
   process.exit(1);
 }
 
-/**
- * Delay helper
- */
+// Custom fetch with agent
+const agent = new https.Agent({ rejectUnauthorized: false });
+
+async function fetchAPI(url) {
+  const response = await fetch(url, { agent });
+  return response.json();
+}
+
+async function getPrivateKeyFromMnemonic(mnemonic) {
+  const wallet = await generateWallet({
+    secretKey: mnemonic,
+    password: ''
+  });
+  const account = wallet.accounts[0];
+  return account.stxPrivateKey;
+}
+
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-/**
- * Get deployer nonce
- */
 async function getDeployerNonce() {
-  const response = await fetch(`${API_URL}/extended/v1/address/${DEPLOYER_ADDRESS}/nonces`);
-  const data = await response.json();
+  const data = await fetchAPI(`${API_URL}/extended/v1/address/${DEPLOYER_ADDRESS}/nonces`);
   return data.possible_next_nonce;
 }
 
-/**
- * Deploy a single contract
- */
-async function deployContract(name, sourceFile, nonce) {
+async function deployContract(name, sourceFile, nonce, privateKey) {
   const contractPath = path.join('./contracts', sourceFile);
   const codeBody = fs.readFileSync(contractPath, 'utf8');
   
@@ -56,11 +66,11 @@ async function deployContract(name, sourceFile, nonce) {
   const txOptions = {
     contractName: name,
     codeBody,
-    senderKey: DEPLOYER_PRIVATE_KEY,
+    senderKey: privateKey,
     network,
     nonce: BigInt(nonce),
     anchorMode: AnchorMode.Any,
-    fee: BigInt(100000) // 0.1 STX deployment fee
+    fee: BigInt(100000)
   };
 
   const transaction = await makeContractDeploy(txOptions);
@@ -72,7 +82,7 @@ async function deployContract(name, sourceFile, nonce) {
   }
   
   const contractAddress = `${DEPLOYER_ADDRESS}.${name}`;
-  console.log(`   ✅ Deployed: ${contractAddress}`);
+  console.log(`   ✅ Broadcast: ${contractAddress}`);
   console.log(`   📝 TX: ${broadcastResponse.txid}`);
   
   return {
@@ -83,9 +93,6 @@ async function deployContract(name, sourceFile, nonce) {
   };
 }
 
-/**
- * Main deployment function
- */
 async function main() {
   console.log('═══════════════════════════════════════════════════════════');
   console.log('           MintMart Contract Deployer v1.0');
@@ -93,23 +100,21 @@ async function main() {
   console.log(`\n🚀 Deploying contracts to Stacks Mainnet`);
   console.log(`📍 Deployer: ${DEPLOYER_ADDRESS}`);
   
-  // Check deployer balance
-  const balanceResponse = await fetch(`${API_URL}/extended/v1/address/${DEPLOYER_ADDRESS}/stx`);
-  const balanceData = await balanceResponse.json();
+  console.log(`\n🔑 Deriving private key from mnemonic...`);
+  const privateKey = await getPrivateKeyFromMnemonic(DEPLOYER_MNEMONIC);
+  console.log(`   ✅ Key derived successfully`);
+  
+  const balanceData = await fetchAPI(`${API_URL}/extended/v1/address/${DEPLOYER_ADDRESS}/stx`);
   const balance = parseInt(balanceData.balance) / 1000000;
   
   console.log(`💰 Deployer balance: ${balance.toFixed(4)} STX`);
   
-  // Each contract deployment costs ~0.1 STX
   const requiredBalance = 5 * 0.1;
   if (balance < requiredBalance) {
-    console.error(`\n❌ Insufficient balance for deployment!`);
-    console.error(`   Need: ${requiredBalance} STX`);
-    console.error(`   Have: ${balance.toFixed(4)} STX`);
+    console.error(`\n❌ Insufficient balance! Need: ${requiredBalance} STX, Have: ${balance.toFixed(4)} STX`);
     process.exit(1);
   }
   
-  // Get starting nonce
   let currentNonce = await getDeployerNonce();
   console.log(`\n🔢 Starting nonce: ${currentNonce}`);
   
@@ -125,62 +130,37 @@ async function main() {
   
   for (const contract of contracts) {
     try {
-      const result = await deployContract(contract.name, contract.file, currentNonce);
+      const result = await deployContract(contract.name, contract.file, currentNonce, privateKey);
       results.push(result);
       currentNonce++;
-      
-      // Wait between deployments
       await delay(2000);
     } catch (error) {
-      console.log(`   ❌ Error deploying ${contract.name}: ${error.message}`);
-      results.push({
-        success: false,
-        name: contract.name,
-        error: error.message
-      });
+      console.log(`   ❌ Error: ${error.message}`);
+      results.push({ success: false, name: contract.name, error: error.message });
     }
   }
   
-  // Save deployment results
-  const deploymentResults = {
+  fs.writeFileSync('./deployment-results.json', JSON.stringify({
     network: 'mainnet',
     deployer: DEPLOYER_ADDRESS,
     timestamp: new Date().toISOString(),
     contracts: results
-  };
+  }, null, 2));
   
-  fs.writeFileSync('./deployment-results.json', JSON.stringify(deploymentResults, null, 2));
-  
-  // Summary
   console.log('\n═══════════════════════════════════════════════════════════');
   console.log('                  DEPLOYMENT COMPLETE');
   console.log('═══════════════════════════════════════════════════════════');
   
   const successful = results.filter(r => r.success);
-  const failed = results.filter(r => !r.success);
-  
-  console.log(`   ✅ Deployed: ${successful.length} contracts`);
-  console.log(`   ❌ Failed: ${failed.length} contracts`);
+  console.log(`   ✅ Deployed: ${successful.length}/5 contracts`);
   
   if (successful.length > 0) {
     console.log('\n📋 Contract Addresses:');
-    for (const result of successful) {
-      console.log(`   ${result.name}: ${result.address}`);
+    for (const r of successful) {
+      console.log(`   ${r.name}: ${r.address}`);
     }
   }
-  
-  console.log('\n💾 Results saved to deployment-results.json');
-  console.log('═══════════════════════════════════════════════════════════\n');
-  
-  // Generate .env updates
-  if (successful.length > 0) {
-    console.log('📝 Add these to your .env file:\n');
-    for (const result of successful) {
-      const envKey = result.name.toUpperCase().replace(/-/g, '_') + '_ADDRESS';
-      console.log(`${envKey}=${result.address}`);
-    }
-    console.log('');
-  }
+  console.log('\n💾 Results saved to deployment-results.json\n');
 }
 
 main().catch(console.error);
