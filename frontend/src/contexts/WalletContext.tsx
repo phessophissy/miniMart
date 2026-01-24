@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
 import { AppConfig, UserSession, showConnect } from '@stacks/connect';
 import { STACKS_MAINNET } from '@stacks/network';
 
@@ -14,25 +14,45 @@ interface WalletContextType {
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
 
-const appConfig = new AppConfig(['store_write', 'publish_data']);
-const userSession = new UserSession({ appConfig });
-
 export const network = STACKS_MAINNET;
+
+// Create app config and user session lazily to avoid SSR issues
+let appConfig: AppConfig | null = null;
+let userSession: UserSession | null = null;
+
+function getAppConfig() {
+  if (!appConfig) {
+    appConfig = new AppConfig(['store_write', 'publish_data']);
+  }
+  return appConfig;
+}
+
+function getUserSession() {
+  if (!userSession) {
+    userSession = new UserSession({ appConfig: getAppConfig() });
+  }
+  return userSession;
+}
 
 export function WalletProvider({ children }: { children: ReactNode }) {
   const [isConnected, setIsConnected] = useState(false);
   const [address, setAddress] = useState<string | null>(null);
+  const [session, setSession] = useState<UserSession | null>(null);
 
-  // Check if user is already signed in
-  useState(() => {
-    if (userSession.isUserSignedIn()) {
-      const userData = userSession.loadUserData();
+  // Check if user is already signed in - use useEffect, not useState
+  useEffect(() => {
+    const currentSession = getUserSession();
+    setSession(currentSession);
+    
+    if (currentSession.isUserSignedIn()) {
+      const userData = currentSession.loadUserData();
       setIsConnected(true);
       setAddress(userData.profile.stxAddress.mainnet);
     }
-  });
+  }, []);
 
   const connect = useCallback(() => {
+    const currentSession = getUserSession();
     showConnect({
       appDetails: {
         name: 'MintMart',
@@ -40,17 +60,18 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       },
       redirectTo: '/',
       onFinish: () => {
-        const userData = userSession.loadUserData();
+        const userData = currentSession.loadUserData();
         setIsConnected(true);
         setAddress(userData.profile.stxAddress.mainnet);
         window.location.reload();
       },
-      userSession,
+      userSession: currentSession,
     });
   }, []);
 
   const disconnect = useCallback(() => {
-    userSession.signUserOut();
+    const currentSession = getUserSession();
+    currentSession.signUserOut();
     setIsConnected(false);
     setAddress(null);
   }, []);
@@ -62,7 +83,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         address,
         connect,
         disconnect,
-        userSession,
+        userSession: session,
       }}
     >
       {children}
