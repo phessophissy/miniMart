@@ -278,3 +278,5 @@ a, button {
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
+
+/* UI Enhancement #1: style(css): add hover transition effects to buttons */
