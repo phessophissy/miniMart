@@ -4,7 +4,7 @@ import { motion, HTMLMotionProps } from 'framer-motion';
 import { ReactNode } from 'react';
 
 type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost';
-type ButtonSize = 'sm' | 'md' | 'lg';
+type ButtonSize = 'sm' | 'md' | 'lg' | 'xl';
 
 interface ButtonProps extends Omit<HTMLMotionProps<'button'>, 'children'> {
   children: ReactNode;
@@ -17,16 +17,17 @@ interface ButtonProps extends Omit<HTMLMotionProps<'button'>, 'children'> {
 }
 
 const variantStyles: Record<ButtonVariant, string> = {
-  primary: 'bg-gradient-to-r from-gold-light to-gold text-black hover:from-gold hover:to-gold-dark',
-  secondary: 'bg-gray-800 text-gold border border-gold/30 hover:border-gold/60',
-  outline: 'bg-transparent text-gold border-2 border-gold hover:bg-gold/10',
-  ghost: 'bg-transparent text-gold hover:bg-gold/10'
+  primary: 'bg-gradient-to-r from-purple-500 to-purple-600 text-white hover:from-purple-600 hover:to-purple-700 shadow-lg shadow-purple-500/30',
+  secondary: 'bg-purple-50 text-purple-600 border-2 border-purple-200 hover:bg-purple-100 hover:border-purple-300',
+  outline: 'bg-transparent text-purple-600 border-2 border-purple-400 hover:bg-purple-50',
+  ghost: 'bg-transparent text-purple-600 hover:bg-purple-50'
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
-  sm: 'px-3 py-1.5 text-sm',
-  md: 'px-5 py-2.5 text-base',
-  lg: 'px-8 py-3.5 text-lg'
+  sm: 'px-4 py-2 text-sm rounded-lg',
+  md: 'px-6 py-3 text-base rounded-xl',
+  lg: 'px-8 py-4 text-lg rounded-xl',
+  xl: 'px-10 py-5 text-xl rounded-2xl'
 };
 
 export default function Button({
@@ -43,7 +44,7 @@ export default function Button({
 }: ButtonProps) {
   return (
     <motion.button
-      whileHover={{ scale: disabled || isLoading ? 1 : 1.02 }}
+      whileHover={{ scale: disabled || isLoading ? 1 : 1.03, y: disabled || isLoading ? 0 : -2 }}
       whileTap={{ scale: disabled || isLoading ? 1 : 0.98 }}
       disabled={disabled || isLoading}
       className={`
@@ -51,8 +52,8 @@ export default function Button({
         ${sizeStyles[size]}
         ${fullWidth ? 'w-full' : ''}
         inline-flex items-center justify-center gap-2
-        font-semibold rounded-lg
-        transition-all duration-200
+        font-semibold
+        transition-all duration-300
         disabled:opacity-50 disabled:cursor-not-allowed
         ${className}
       `}
