@@ -32,6 +32,12 @@
   --gray-800: #1f2937;
   --gray-900: #111827;
   
+  /* Semantic colors */
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --info: #3b82f6;
+  
   --background: linear-gradient(135deg, var(--lavender-50) 0%, var(--purple-100) 50%, var(--lavender-100) 100%);
   --background-solid: var(--lavender-50);
   --foreground: var(--gray-800);
@@ -64,6 +70,7 @@ body {
   color: var(--foreground);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   min-height: 100vh;
+  line-height: 1.6;
 }
 
 /* Custom Scrollbar */
@@ -144,6 +151,12 @@ body {
   box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
 }
 
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .btn-secondary {
   background: rgba(139, 92, 246, 0.1);
   color: var(--purple-600);
@@ -163,7 +176,7 @@ body {
   box-shadow: 0 4px 16px rgba(139, 92, 246, 0.2);
 }
 
-/* Floating Ball Animation Keyframes */
+/* Animation Keyframes */
 @keyframes float {
   0%, 100% {
     transform: translateY(0) translateX(0) rotate(0deg);
@@ -229,7 +242,51 @@ body {
   }
 }
 
-/* Rarity Colors - Updated for light theme */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Utility Animation Classes */
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.5s ease-out;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.3s ease-out;
+}
+
+/* Rarity Colors */
 .rarity-common {
   --rarity-color: #6b7280;
   --rarity-bg: linear-gradient(135deg, #9ca3af, #6b7280);
@@ -279,146 +336,36 @@ a, button {
   animation: shimmer 1.5s infinite;
 }
 
-/* UI Enhancement #1: style(css): add hover transition effects to buttons */
+/* Toast notifications */
+.toast {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+  padding: 16px 20px;
+  border-left: 4px solid var(--purple-500);
+}
 
-/* UI Enhancement #2: style(css): improve card shadow on hover state */
+.toast-success {
+  border-left-color: var(--success);
+}
 
-/* UI Enhancement #3: style(css): add smooth scrolling behavior */
+.toast-error {
+  border-left-color: var(--error);
+}
 
-/* UI Enhancement #4: style(css): update scrollbar styling for webkit */
+.toast-warning {
+  border-left-color: var(--warning);
+}
 
-/* UI Enhancement #5: style(css): add focus ring styles for accessibility */
+/* Responsive text */
+@media (max-width: 768px) {
+  html {
+    font-size: 14px;
+  }
+}
 
-/* UI Enhancement #6: style(css): improve text selection highlighting */
-
-/* UI Enhancement #7: feat(ui): add ripple effect animation keyframes */
-
-/* UI Enhancement #8: style(css): update gradient text effect */
-
-/* UI Enhancement #9: style(css): add glass morphism backdrop blur */
-
-/* UI Enhancement #10: style(css): improve border radius consistency */
-
-/* UI Enhancement #11: feat(animation): add fade-in animation utility */
-
-/* UI Enhancement #12: feat(animation): add slide-up animation utility */
-
-/* UI Enhancement #13: feat(animation): add scale-in animation utility */
-
-/* UI Enhancement #14: style(css): improve button active states */
-
-/* UI Enhancement #15: style(css): add button disabled styles */
-
-/* UI Enhancement #16: feat(ui): add pulse animation for notifications */
-
-/* UI Enhancement #17: style(css): update input field focus styles */
-
-/* UI Enhancement #18: style(css): add form validation styles */
-
-/* UI Enhancement #19: feat(animation): add bounce animation utility */
-
-/* UI Enhancement #1: style(css): add hover transition effects to buttons */
-
-/* UI Enhancement #2: style(css): improve card shadow on hover state */
-
-/* UI Enhancement #3: style(css): add smooth scrolling behavior */
-
-/* UI Enhancement #4: style(css): update scrollbar styling for webkit */
-
-/* UI Enhancement #5: style(css): add focus ring styles for accessibility */
-
-/* UI Enhancement #6: style(css): improve text selection highlighting */
-
-/* UI Enhancement #7: feat(ui): add ripple effect animation keyframes */
-
-/* UI Enhancement #8: style(css): update gradient text effect */
-
-/* UI Enhancement #9: style(css): add glass morphism backdrop blur */
-
-/* UI Enhancement #10: style(css): improve border radius consistency */
-
-/* UI Enhancement #11: feat(animation): add fade-in animation utility */
-
-/* UI Enhancement #12: feat(animation): add slide-up animation utility */
-
-/* UI Enhancement #13: feat(animation): add scale-in animation utility */
-
-/* UI Enhancement #14: style(css): improve button active states */
-
-/* UI Enhancement #15: style(css): add button disabled styles */
-
-/* UI Enhancement #1: style(css): add hover transition effects to buttons */
-
-/* UI Enhancement #2: style(css): improve card shadow on hover state */
-
-/* UI Enhancement #3: style(css): add smooth scrolling behavior */
-
-/* UI Enhancement #4: style(css): update scrollbar styling for webkit */
-
-/* UI Enhancement #5: style(css): add focus ring styles for accessibility */
-
-/* UI Enhancement #6: style(css): improve text selection highlighting */
-
-/* UI Enhancement #7: feat(ui): add ripple effect animation keyframes */
-
-/* UI Enhancement #8: style(css): update gradient text effect */
-
-/* UI Enhancement #9: style(css): add glass morphism backdrop blur */
-
-/* UI Enhancement #10: style(css): improve border radius consistency */
-
-/* UI Enhancement #11: feat(animation): add fade-in animation utility */
-
-/* UI Enhancement #12: feat(animation): add slide-up animation utility */
-
-/* UI Enhancement #13: feat(animation): add scale-in animation utility */
-
-/* UI Enhancement #14: style(css): improve button active states */
-
-/* UI Enhancement #15: style(css): add button disabled styles */
-
-/* UI Enhancement #16: feat(ui): add pulse animation for notifications */
-
-/* UI Enhancement #17: style(css): update input field focus styles */
-
-/* UI Enhancement #18: style(css): add form validation styles */
-
-/* UI Enhancement #19: feat(animation): add bounce animation utility */
-
-/* UI Enhancement #20: style(css): improve link hover underline effect */
-
-/* UI Enhancement #21: style(css): add card content padding adjustments */
-
-/* UI Enhancement #22: feat(ui): add loading skeleton animation */
-
-/* UI Enhancement #23: style(css): update typography line heights */
-
-/* UI Enhancement #24: style(css): improve heading font weights */
-
-/* UI Enhancement #25: feat(animation): add rotate animation utility */
-
-/* UI Enhancement #26: style(css): add responsive font sizes */
-/* Enhancement 1 */
-/* Enhancement 2 */
-/* Enhancement 3 */
-/* Enhancement 4 */
-/* Enhancement 5 */
-/* Enhancement 6 */
-/* Enhancement 7 */
-/* Enhancement 8 */
-/* Enhancement 9 */
-/* Enhancement 10 */
-/* Enhancement 11 */
-/* Enhancement 12 */
-/* Enhancement 13 */
-/* Enhancement 14 */
-/* Enhancement 15 */
-/* Enhancement 16 */
-/* Enhancement 17 */
-/* Enhancement 18 */
-/* Enhancement 19 */
-/* Enhancement 20 */
-/* Enhancement 21 */
-/* Enhancement 22 */
-/* Enhancement 23 */
-/* Enhancement 24 */
+@media (max-width: 480px) {
+  html {
+    font-size: 13px;
+  }
+}
