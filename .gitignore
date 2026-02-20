@@ -43,6 +43,7 @@ coverage/
 # Misc
 *.log
 .vercel
+docs/prs/
 
 # Deployment and minting results (may contain tx data)
 deployment-results.json
