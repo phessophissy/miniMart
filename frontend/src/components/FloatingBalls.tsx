@@ -15,24 +15,24 @@ interface Ball {
   blur: number;
 }
 
-const purpleColors = [
-  'rgba(168, 85, 247, opacity)', // purple-500
-  'rgba(147, 51, 234, opacity)', // purple-600
-  'rgba(192, 132, 252, opacity)', // purple-400
-  'rgba(167, 139, 250, opacity)', // lavender-400
-  'rgba(139, 92, 246, opacity)', // lavender-500
-  'rgba(221, 214, 254, opacity)', // lavender-200
-  'rgba(196, 181, 253, opacity)', // lavender-300
-  'rgba(216, 180, 254, opacity)', // purple-300
-  'rgba(233, 213, 255, opacity)', // purple-200
-  'rgba(243, 232, 255, opacity)', // purple-100
+const woodColors = [
+  'rgba(154, 103, 54, opacity)', // wood-500
+  'rgba(127, 83, 40, opacity)', // wood-600
+  'rgba(185, 132, 82, opacity)', // wood-400
+  'rgba(195, 155, 110, opacity)', // sand-400
+  'rgba(173, 127, 79, opacity)', // sand-500
+  'rgba(232, 210, 184, opacity)', // sand-200
+  'rgba(216, 185, 146, opacity)', // sand-300
+  'rgba(209, 169, 123, opacity)', // wood-300
+  'rgba(227, 198, 166, opacity)', // wood-200
+  'rgba(241, 227, 209, opacity)', // wood-100
 ];
 
 export default function FloatingBalls() {
   const balls = useMemo<Ball[]>(() => {
     return Array.from({ length: 25 }, (_, i) => {
       const opacity = Math.random() * 0.4 + 0.15;
-      const colorTemplate = purpleColors[Math.floor(Math.random() * purpleColors.length)];
+      const colorTemplate = woodColors[Math.floor(Math.random() * woodColors.length)];
       return {
         id: i,
         size: Math.random() * 180 + 40,
@@ -50,7 +50,7 @@ export default function FloatingBalls() {
   const largeBalls = useMemo<Ball[]>(() => {
     return Array.from({ length: 8 }, (_, i) => {
       const opacity = Math.random() * 0.2 + 0.08;
-      const colorTemplate = purpleColors[Math.floor(Math.random() * 5)];
+      const colorTemplate = woodColors[Math.floor(Math.random() * 5)];
       return {
         id: i + 100,
         size: Math.random() * 300 + 200,
@@ -128,7 +128,7 @@ export default function FloatingBalls() {
       <div 
         className="absolute -top-20 -left-20 w-[500px] h-[500px] rounded-full"
         style={{
-          background: 'radial-gradient(circle, rgba(168, 85, 247, 0.15), transparent 70%)',
+          background: 'radial-gradient(circle, rgba(154, 103, 54, 0.15), transparent 70%)',
           filter: 'blur(80px)',
         }}
       />
@@ -137,7 +137,7 @@ export default function FloatingBalls() {
       <div 
         className="absolute -top-40 right-0 w-[600px] h-[600px] rounded-full"
         style={{
-          background: 'radial-gradient(circle, rgba(139, 92, 246, 0.12), transparent 70%)',
+          background: 'radial-gradient(circle, rgba(185, 132, 82, 0.12), transparent 70%)',
           filter: 'blur(100px)',
         }}
       />
@@ -146,7 +146,7 @@ export default function FloatingBalls() {
       <div 
         className="absolute -bottom-32 left-1/3 w-[700px] h-[700px] rounded-full"
         style={{
-          background: 'radial-gradient(circle, rgba(167, 139, 250, 0.1), transparent 70%)',
+          background: 'radial-gradient(circle, rgba(173, 127, 79, 0.1), transparent 70%)',
           filter: 'blur(90px)',
         }}
       />
@@ -155,7 +155,7 @@ export default function FloatingBalls() {
       <div 
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full"
         style={{
-          background: 'radial-gradient(circle, rgba(192, 132, 252, 0.08), transparent 60%)',
+          background: 'radial-gradient(circle, rgba(209, 169, 123, 0.08), transparent 60%)',
           filter: 'blur(120px)',
         }}
       />

@@ -17,10 +17,10 @@ interface ButtonProps extends Omit<HTMLMotionProps<'button'>, 'children'> {
 }
 
 const variantStyles: Record<ButtonVariant, string> = {
-  primary: 'bg-gradient-to-r from-purple-500 to-purple-600 text-white hover:from-purple-600 hover:to-purple-700 shadow-lg shadow-purple-500/30',
-  secondary: 'bg-purple-50 text-purple-600 border-2 border-purple-200 hover:bg-purple-100 hover:border-purple-300',
-  outline: 'bg-transparent text-purple-600 border-2 border-purple-400 hover:bg-purple-50',
-  ghost: 'bg-transparent text-purple-600 hover:bg-purple-50'
+  primary: 'btn-primary',
+  secondary: 'btn-secondary',
+  outline: 'btn-outline',
+  ghost: 'btn-ghost'
 };
 
 const sizeStyles: Record<ButtonSize, string> = {

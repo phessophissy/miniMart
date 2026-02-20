@@ -33,7 +33,7 @@ const tierConfig = {
   epic: {
     gradient: 'from-purple-400 via-purple-500 to-purple-600',
     border: 'border-purple-300',
-    glow: 'rgba(139, 92, 246, 0.3)',
+    glow: 'rgba(154, 103, 54, 0.3)',
     text: 'text-purple-600',
     badge: 'bg-purple-100 text-purple-700',
     icon: '🟣',
