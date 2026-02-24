@@ -66,7 +66,9 @@ export default function Avatar({
       </motion.div>
       
       {status && (
-        <span
+        <motion.span
+          animate={{ scale: [1, 1.4, 1] }}   // Pulse effect
+          transition={{ repeat: Infinity, duration: 1.2 }}
           className={`
             absolute bottom-0 right-0
             ${statusSizes[size]}
