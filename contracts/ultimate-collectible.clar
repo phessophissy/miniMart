@@ -1,7 +1,7 @@
 ;; Ultimate Collectible NFT Contract
 ;; Implements SIP-009 NFT standard
 ;; Supply: 100 | Mint Price: 0.1 STX
-;; The rarest tier - highly limited edition
+;; Rare tier collectible with per-token metadata
 
 (impl-trait 'SP2PABAF9FTAJYNFZH93XENAJ8FVY99RRM50D2JG9.nft-trait.nft-trait)
 
@@ -23,63 +23,61 @@
 (define-data-var last-token-id uint u0)
 (define-data-var base-uri (string-ascii 256) "https://mintmart.io/api/metadata/ultimate/")
 
+;; NEW: Map to store per-token metadata URI
+(define-map token-uri { token-id: uint } { uri: (string-ascii 256) })
+
 ;; SIP-009 Functions
 (define-read-only (get-last-token-id)
-    (ok (var-get last-token-id)))
+  (ok (var-get last-token-id)))
 
+;; Returns per-token URI if set, otherwise base-uri
 (define-read-only (get-token-uri (token-id uint))
-    (ok (some (var-get base-uri))))
+  (match (map-get? token-uri { token-id })
+    entry (ok (some (get uri entry)))
+    _ (ok (some (var-get base-uri)))))
 
 (define-read-only (get-owner (token-id uint))
-    (ok (nft-get-owner? ultimate-collectible token-id)))
+  (ok (nft-get-owner? ultimate-collectible token-id)))
 
 (define-public (transfer (token-id uint) (sender principal) (recipient principal))
-    (begin
-        (asserts! (is-eq tx-sender sender) ERR-NOT-AUTHORIZED)
-        (nft-transfer? ultimate-collectible token-id sender recipient)))
+  (begin
+    (asserts! (is-eq tx-sender sender) ERR-NOT-AUTHORIZED)
+    (nft-transfer? ultimate-collectible token-id sender recipient)))
 
 ;; Mint Functions
+;; Mint with optional custom token URI
+(define-public (mint-with-uri (token-uri-str (string-ascii 256)))
+  (let ((next-id (+ (var-get last-token-id) u1)))
+    (asserts! (<= next-id MAX-SUPPLY) ERR-SOLD-OUT)
+    (try! (stx-transfer? MINT-PRICE tx-sender CONTRACT-OWNER))
+    (try! (nft-mint? ultimate-collectible next-id tx-sender))
+    ;; Store per-token URI
+    (map-set token-uri { token-id: next-id } { uri: token-uri-str })
+    (var-set last-token-id next-id)
+    (ok next-id)))
+
+;; Legacy mint for backward compatibility (uses base URI)
 (define-public (mint)
-    (let ((next-id (+ (var-get last-token-id) u1)))
-        (asserts! (<= next-id MAX-SUPPLY) ERR-SOLD-OUT)
-        (try! (stx-transfer? MINT-PRICE tx-sender CONTRACT-OWNER))
-        (try! (nft-mint? ultimate-collectible next-id tx-sender))
-        (var-set last-token-id next-id)
-        (ok next-id)))
-
-;; Batch mint for gas optimization
-(define-public (mint-many (count uint))
-    (let ((start-id (var-get last-token-id))
-          (end-id (+ start-id count)))
-        (asserts! (<= end-id MAX-SUPPLY) ERR-SOLD-OUT)
-        (try! (stx-transfer? (* MINT-PRICE count) tx-sender CONTRACT-OWNER))
-        (try! (fold mint-iter (list u1 u2 u3 u4 u5) (ok start-id)))
-        (ok end-id)))
-
-(define-private (mint-iter (n uint) (prev-result (response uint uint)))
-    (match prev-result
-        prev-id (let ((next-id (+ prev-id u1)))
-            (if (<= next-id MAX-SUPPLY)
-                (begin
-                    (try! (nft-mint? ultimate-collectible next-id tx-sender))
-                    (var-set last-token-id next-id)
-                    (ok next-id))
-                ERR-SOLD-OUT))
-        err-val (err err-val)))
+  (let ((next-id (+ (var-get last-token-id) u1)))
+    (asserts! (<= next-id MAX-SUPPLY) ERR-SOLD-OUT)
+    (try! (stx-transfer? MINT-PRICE tx-sender CONTRACT-OWNER))
+    (try! (nft-mint? ultimate-collectible next-id tx-sender))
+    (var-set last-token-id next-id)
+    (ok next-id)))
 
 ;; Read-only helpers
 (define-read-only (get-mint-price)
-    (ok MINT-PRICE))
+  (ok MINT-PRICE))
 
 (define-read-only (get-max-supply)
-    (ok MAX-SUPPLY))
+  (ok MAX-SUPPLY))
 
 (define-read-only (get-available-supply)
-    (ok (- MAX-SUPPLY (var-get last-token-id))))
+  (ok (- MAX-SUPPLY (var-get last-token-id))))
 
 ;; Admin Functions
 (define-public (set-base-uri (new-uri (string-ascii 256)))
-    (begin
-        (asserts! (is-eq tx-sender CONTRACT-OWNER) ERR-NOT-AUTHORIZED)
-        (var-set base-uri new-uri)
-        (ok true)))
+  (begin
+    (asserts! (is-eq tx-sender CONTRACT-OWNER) ERR-NOT-AUTHORIZED)
+    (var-set base-uri new-uri)
+    (ok true)))
